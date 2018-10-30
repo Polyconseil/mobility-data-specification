@@ -15,6 +15,7 @@ This specification contains a collection of RESTful APIs used to specify the dig
 * [end_trip](#start_trip)
 * [update_trip_telemetry](#update_trip_telemetry)
 * [service_areas](#service_areas)
+* [Data types](#data-types)
 * [Event types](#Event-Types)
 * [Enum definitions](#enum-definitions)
 
@@ -80,11 +81,9 @@ Body:
 | Field | Type | Required/Optional | Other |
 | ----- | ---- | ----------------- | ----- |
 | `unique_id` | UUID | Required | ID used in [Register](#register_vehicle) |
-| `timestamp` | Unix Timestamp | Required | Date/time that event occurred. Based on GPS clock. |
-| `location` | Point | Required | Location at the time of status change in WGS 84 (EPSG:4326) standard GPS projection  |
+| `location` | gps-point | Required | [GPS point](#gps-point) of status change |
 | `event_type` | Enum | Required | [Event Type](#event_type) for status change.  |
 | `reason_code` | Enum | Required | [Reason](#reason_code) for status change.  |
-| `battery_pct` | Float | Require if Applicable | Percent battery charge of device, expressed between 0 and 1 |
 
 Response:
 
@@ -105,10 +104,7 @@ Body:
 | `unique_id` | UUID | Required | ID used in [Register](#register_vehicle) |
 | `provider_id` | String | Required | Issued by city |
 | `vehicle_id` | String | Required | Provided by the Vehicle Registration API |
-| `timestamp` | Unix Timestamp | Required | Date/time that event occurred. Based on GPS clock. |
-| `location` | Point | Required | Location at the time of status change in WGS 84 (EPSG:4326) standard GPS projection  |
-| `accuracy` | Integer | Required | The approximate level of accuracy, in meters, represented by start_point and end_point. |
-| `battery_pct_start` | Float | Require if Applicable | Percent battery charge of device, expressed between 0 and 1 |
+| `location` | gps-point | Required | [GPS point](#gps-point) of trip start |
 
 Response:
 
@@ -127,14 +123,12 @@ Body:
 | Field | Type | Required/Optional | Other |
 | ----- | ---- | ----------------- | ----- |
 | `trip_id` | UUID | Required | See [start_trip](#start_trip) |
-| `timestamp` | Unix Timestamp | Required | Date/time that event occurred. Based on GPS clock. |
-| `location` | Point | Required | Location at the time of status change in WGS 84 (EPSG:4326) standard GPS projection  |
-| `accuracy` | Integer | Required | The approximate level of accuracy, in meters, represented by start_point and end_point. |
-| `battery_pct_end` | Float | Require if Applicable | Percent battery charge of device, expressed between 0 and 1 |
+| `location` | gps-point | Required | [GPS point](#gps-point) of trip end |
 
 ## update_trip_telemetry
 
-A trip represents a route taken by a provider's customer.   Trip data will be reported to the API every 5 seconds while the vehicle is in motion.
+A trip represents a route taken by a provider's customer.
+Trip data will be reported to the API every 5 seconds while the vehicle is in motion.
 
 Endpoint: `/update_trip_telemetry`\
 Method: `POST`\
@@ -145,54 +139,13 @@ Body:
 | Field | Type     | Required/Optional | Other |
 | ----- | -------- | ----------------- | ----- |
 | `trip_id` | UUID | Required | Issued by InitMovementPlan() API  |
-| `timestamp` | Unix Timestamp | Required | Time of day (UTC) data was sampled|
-| `route` | Route | Required | See detail below. |
-| `accuracy` | Integer | Required | The approximate level of accuracy, in meters, represented by start_point and end_point. |
+| `route` | route | Required | See the [route](#route) data type |
 
 Response:
 
 | Field | Type | Other |
 | ---- | --- | --- |
 | `message` | Enum | See [Message](#message) Enum |
-
-### Route
-
-To represent a route, MDS provider APIs should create a GeoJSON Feature Collection where ever observed point in the route, plus a time stamp, should be included. The representation needed is below.
-
-The route must include at least 2 points, a start point and end point. Additionally, it must include all possible GPS samples collected by a provider. All points must be in WGS 84 (EPSG:4326) standard GPS projection
-
-```js
-"route": {
-        "type": "FeatureCollection",
-        "features": [
-            {
-                "type": "Feature",
-                "properties": {
-                    "timestamp": 1529968782.421409
-                },
-                "geometry": {
-                    "type": "Point",
-                    "coordinates": [
-                        -118.46710503101347,
-                        33.9909333514159
-                    ]
-                }
-            },
-            {
-                "type": "Feature",
-                "properties": {
-                    "timestamp": 1531007628.3774529
-                },
-                "geometry": {
-                    "type": "Point",
-                    "coordinates": [
-                        -118.464851975441,
-                        33.990366257735
-                    ]
-                }
-            }
-        ] }
-```
 
 ## service_areas
 
@@ -218,6 +171,77 @@ Response:
 | `service_area` | MultiPolygon | Required | |
 | `prior_service_area` | UUID | Optional | If exists, the UUID of the prior service area. |
 | `replacement_service_area` | UUID | Optional | If exists, the UUID of the service area that replaced this one |
+
+## Data types
+
+### route
+
+A route is a GeoJSON `FeaturesCollection` containing `gps-point` Features.
+
+### gps-point
+
+A `gps-point` is a GeoJSON `Feature` containing a `Point` geometry and a serie of additional properties:
+
+| Field | Sub Field | Type | Required | Description |
+| ----- | --------- | -----|--------- | ----------- |
+| `gsm` | | object | Required | GSM data |
+| | `operator` | String | Optional | GSM operator |
+| | `signal` | Integer | Optional | GSM signal strength (percentage) |
+| | `timestamp` | date-time | Required | GSM timestamp |
+| `gps` |  | object | Required | GPS data |
+| | `accuracy` | Integer | Required | Estimated accuracy in meters |
+| | `course` | Float | Optional | GPS course (degrees relative to geographical north) |
+| | `speed` | Float | Optional | Vehicle speed from GPS (m/s) |
+| | `timestamp` | date-time | Required | GPS timestamp |
+| `vehicle_state` |  | object | Optional | Vehicle data (when available) |
+| | `speed` | Float | Optional | Vehicle speed from CAN (m/s) |
+| | `acceleration` | Array of Float | Optional | Vehicle acceleration on [x, y, z] axis (m/s^2)|
+| | `odometer` | Integer | Optional | Vehicle odometer (distance traveled) in meters |
+| | `driver_present` | Boolean | Optional | Driver is present in the vehicle |
+| `energy` |  | object | Optional | Energy consumption information |
+| | `cruise_range` | Integer | Optional | Estimated range of the vehicle in meters |
+| | `autonomy` | Float | Optional | Remaining autonomy (percentage) |
+
+The GeoJSON `Point` coordinates must be in WGS 84 (EPSG:4326) standard GPS projection and can include an optional altitude in meters
+
+Example:
+
+```json
+{
+    "type": "Feature",
+    "geometry": {
+        "type": "Point",
+        "coordinates": [
+            -118.46710503101347,
+            33.9909333514159,
+            123.45
+        ]
+    },
+    "properties": {
+        "gsm": {
+            "operator": "Verizon",
+            "signal": 0.71,
+            "timestamp": "2018-06-25T23:19:42.111111+00:00"
+        },
+        "gps": {
+            "accuracy": 3,
+            "course": 12.435,
+            "speed": 8.34,
+            "timestamp": "2018-06-25T23:19:42.123456+00:00"
+        },
+        "vehicle_state": {
+            "speed": 9.1234,
+            "acceleration": [1.21, -0.54, 0.1],
+            "odometer": 12345678,
+            "driver_present": true
+        },
+        "energy": {
+            "cruise_range": 123456,
+            "autonomy": 0.85
+        }
+    }
+}
+```
 
 ### Event Types
 
