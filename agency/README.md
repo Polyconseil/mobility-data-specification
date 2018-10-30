@@ -58,7 +58,6 @@ Body:
 | Field | Type     | Required/Optional | Other |
 | ----- | -------- | ----------------- | ----- |
 | `unique_id` | UUID | Required | ID used in [Register](#register_vehicle) |
-| `device_id` | UUID | Required | |
 | `reason_code` | Enum | Required | [Reason](#reason_code) for status change  |
 
 Response:
@@ -102,7 +101,6 @@ Body:
 
 | Field | Type | Required/Optional | Other |
 | ----- | ---- | ----------------- | ----- |
-| `unique_id` | UUID | Required | ID used in [Register](#register_vehicle) |
 | `provider_id` | String | Required | Issued by city |
 | `vehicle_id` | String | Required | Provided by the Vehicle Registration API |
 | `timestamp` | Unix Timestamp | Required | Date/time that event occurred. Based on GPS clock. |
@@ -242,9 +240,8 @@ Response:
 
 For `vehicle_type`, options are:
 
-* `bike`
+* `bicycle`
 * `scooter`
-* `recumbent`
 
 ### propulsion_type
 
@@ -252,6 +249,7 @@ For `propulsion_type`, options are:
 
 * `human`
 * `electric`
+* `electric_assist`
 * `combustion`
 
 ### reason_code
