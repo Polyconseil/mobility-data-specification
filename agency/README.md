@@ -30,14 +30,14 @@ Body:
 
 | Field | Type     | Required/Optional | Other |
 | ----- | -------- | ----------------- | ----- |
-| `unique_id` | UUID | Required | UUID v4 provided by Operator to uniquely identify a vehicle |
+| `id` | UUID | Required | UUID v4 provided by Operator to uniquely identify a vehicle |
 | `provider_id` | String | Required | Issued by city |
-| `vehicle_id` | String |  | Vehicle Identification Number (VIN) visible on device|
-| `vehicle_type` | Enum | Required | Vehicle Type |
+| `identification_number` | String |  | Vehicle Identification Number (VIN) visible on device|
+| `type` | Enum | Required | Vehicle Type |
 | `propulsion_type` | Enum | Required | Propulsion Type |
-| `vehicle_year` | Enum | Required | Year Manufactured |
-| `vehicle_mfgr` | Enum | Required | Vehicle Manufacturer |
-| `vehicle_model` | Enum | Required | Vehicle Model |
+| `manufactured_year` | Enum | Required | Year Manufactured |
+| `manufacturer` | Enum | Required | Vehicle Manufacturer |
+| `model` | Enum | Required | Vehicle Model |
 
 Response:
 
@@ -57,9 +57,9 @@ Body:
 
 | Field | Type     | Required/Optional | Other |
 | ----- | -------- | ----------------- | ----- |
-| `unique_id` | UUID | Required | ID used in [Register](#register_vehicle) |
+| `id` | UUID | Required | ID used in [Register](#register_vehicle) |
 | `device_id` | UUID | Required | |
-| `reason_code` | Enum | Required | [Reason](#reason_code) for status change  |
+| `reason_code` | Enum | Required | [Reason](#event_type) for status change  |
 
 Response:
 
@@ -79,12 +79,12 @@ Body:
 
 | Field | Type | Required/Optional | Other |
 | ----- | ---- | ----------------- | ----- |
-| `unique_id` | UUID | Required | ID used in [Register](#register_vehicle) |
+| `id` | UUID | Required | ID used in [Register](#register_vehicle) |
 | `timestamp` | Unix Timestamp | Required | Date/time that event occurred. Based on GPS clock. |
 | `location` | Point | Required | Location at the time of status change in WGS 84 (EPSG:4326) standard GPS projection  |
 | `event_type` | Enum | Required | [Event Type](#event_type) for status change.  |
-| `reason_code` | Enum | Required | [Reason](#reason_code) for status change.  |
-| `battery_pct` | Float | Require if Applicable | Percent battery charge of device, expressed between 0 and 1 |
+| `reason_code` | Enum | Required | [Reason](#event_type) for status change.  |
+| `battery_percentage` | Float | Require if Applicable | Percent battery charge of device, expressed between 0 and 1 |
 
 Response:
 
@@ -108,7 +108,7 @@ Body:
 | `timestamp` | Unix Timestamp | Required | Date/time that event occurred. Based on GPS clock. |
 | `location` | Point | Required | Location at the time of status change in WGS 84 (EPSG:4326) standard GPS projection  |
 | `accuracy` | Integer | Required | The approximate level of accuracy, in meters, represented by start_point and end_point. |
-| `battery_pct_start` | Float | Require if Applicable | Percent battery charge of device, expressed between 0 and 1 |
+| `battery_percentage` | Float | Require if Applicable | Percent battery charge of device, expressed between 0 and 1 |
 
 Response:
 
@@ -126,11 +126,11 @@ Body:
 
 | Field | Type | Required/Optional | Other |
 | ----- | ---- | ----------------- | ----- |
-| `trip_id` | UUID | Required | See [start_trip](#start_trip) |
+| `id` | UUID | Required | See [start_trip](#start_trip) |
 | `timestamp` | Unix Timestamp | Required | Date/time that event occurred. Based on GPS clock. |
 | `location` | Point | Required | Location at the time of status change in WGS 84 (EPSG:4326) standard GPS projection  |
 | `accuracy` | Integer | Required | The approximate level of accuracy, in meters, represented by start_point and end_point. |
-| `battery_pct_end` | Float | Require if Applicable | Percent battery charge of device, expressed between 0 and 1 |
+| `battery_percentage` | Float | Require if Applicable | Percent battery charge of device, expressed between 0 and 1 |
 
 ## update_trip_telemetry
 
@@ -144,7 +144,7 @@ Body:
 
 | Field | Type     | Required/Optional | Other |
 | ----- | -------- | ----------------- | ----- |
-| `trip_id` | UUID | Required | Issued by InitMovementPlan() API  |
+| `id` | UUID | Required | Issued by InitMovementPlan() API  |
 | `timestamp` | Unix Timestamp | Required | Time of day (UTC) data was sampled|
 | `route` | Route | Required | See detail below. |
 | `accuracy` | Integer | Required | The approximate level of accuracy, in meters, represented by start_point and end_point. |
@@ -206,18 +206,18 @@ Query Parameters:
 | Parameter | Type | Required/Optional | Description |
 | ----- | ---- | ----------------- | ----- |
 | `provider_id` | UUID | Required | A UUID for the Provider, unique within MDS |
-| `service_area_id` | UUID  | Optional | If provided, retrieve a specific service area (e.g. a retired or old service area). If omitted, will return all active service areas. |
+| `id` | UUID  | Optional | If provided, retrieve a specific service area (e.g. a retired or old service area). If omitted, will return all active service areas. |
 
 Response:
 
 | Field | Types  | Required/Optional | Other |
 | ----- | ---- | ----------------- | ----- |
-| `service_area_id` | UUID | Required |  |
-| `service_start_date` | Unix Timestamp | Required | Date at which this service area became effective |
-| `service_end_date` | Unix Timestamp | Required | Date at which this service area was replaced. If currently effective, place NaN |
-| `service_area` | MultiPolygon | Required | |
-| `prior_service_area` | UUID | Optional | If exists, the UUID of the prior service area. |
-| `replacement_service_area` | UUID | Optional | If exists, the UUID of the service area that replaced this one |
+| `id` | UUID | Required |  |
+| `start_date` | Unix Timestamp | Required | Date at which this service area became effective |
+| `end_date` | Unix Timestamp | Required | Date at which this service area was replaced. If currently effective, place NaN |
+| `area` | MultiPolygon | Required | |
+| `prior` | UUID | Optional | If exists, the UUID of the prior service area. |
+| `replacement` | UUID | Optional | If exists, the UUID of the service area that replaced this one |
 
 ### Event Types
 
@@ -253,13 +253,6 @@ For `propulsion_type`, options are:
 * `human`
 * `electric`
 * `combustion`
-
-### reason_code
-
-For `reason_code`, options are:
-
-* `rebalancing`
-* `maintenance`
 
 ### message
 
