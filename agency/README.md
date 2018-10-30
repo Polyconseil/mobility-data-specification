@@ -206,7 +206,7 @@ Query Parameters:
 | Parameter | Type | Required/Optional | Description |
 | ----- | ---- | ----------------- | ----- |
 | `provider_id` | UUID | Required | A UUID for the Provider, unique within MDS |
-| `service_area_id` | UUID  | Optional | If provided, retrieve a specific service area (e.g. a retired or old service area). If omitted, will return all active service areas. |  
+| `service_area_id` | UUID  | Optional | If provided, retrieve a specific service area (e.g. a retired or old service area). If omitted, will return all active service areas. |
 
 Response:
 
