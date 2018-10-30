@@ -15,6 +15,7 @@ This specification contains a collection of RESTful APIs used to specify the dig
 * [end_trip](#start_trip)
 * [update_trip_telemetry](#update_trip_telemetry)
 * [service_areas](#service_areas)
+* [Data types](#data-types)
 * [Event types](#Event-Types)
 * [Enum definitions](#enum-definitions)
 
@@ -80,7 +81,7 @@ Body:
 | Field | Type | Required/Optional | Other |
 | ----- | ---- | ----------------- | ----- |
 | `unique_id` | UUID | Required | ID used in [Register](#register_vehicle) |
-| `timestamp` | Unix Timestamp | Required | Date/time that event occurred. Based on GPS clock. |
+| `date` | date-time | Required | Date/time that event occurred. Based on GPS clock. |
 | `location` | Point | Required | Location at the time of status change in WGS 84 (EPSG:4326) standard GPS projection  |
 | `event_type` | Enum | Required | [Event Type](#event_type) for status change.  |
 | `reason_code` | Enum | Required | [Reason](#reason_code) for status change.  |
@@ -105,7 +106,7 @@ Body:
 | `unique_id` | UUID | Required | ID used in [Register](#register_vehicle) |
 | `provider_id` | String | Required | Issued by city |
 | `vehicle_id` | String | Required | Provided by the Vehicle Registration API |
-| `timestamp` | Unix Timestamp | Required | Date/time that event occurred. Based on GPS clock. |
+| `date` | date-time | Required | Date/time that event occurred. Based on GPS clock. |
 | `location` | Point | Required | Location at the time of status change in WGS 84 (EPSG:4326) standard GPS projection  |
 | `accuracy` | Integer | Required | The approximate level of accuracy, in meters, represented by start_point and end_point. |
 | `battery_pct_start` | Float | Require if Applicable | Percent battery charge of device, expressed between 0 and 1 |
@@ -127,7 +128,7 @@ Body:
 | Field | Type | Required/Optional | Other |
 | ----- | ---- | ----------------- | ----- |
 | `trip_id` | UUID | Required | See [start_trip](#start_trip) |
-| `timestamp` | Unix Timestamp | Required | Date/time that event occurred. Based on GPS clock. |
+| `date` | date-time | Required | Date/time that event occurred. Based on GPS clock. |
 | `location` | Point | Required | Location at the time of status change in WGS 84 (EPSG:4326) standard GPS projection  |
 | `accuracy` | Integer | Required | The approximate level of accuracy, in meters, represented by start_point and end_point. |
 | `battery_pct_end` | Float | Require if Applicable | Percent battery charge of device, expressed between 0 and 1 |
@@ -145,7 +146,7 @@ Body:
 | Field | Type     | Required/Optional | Other |
 | ----- | -------- | ----------------- | ----- |
 | `trip_id` | UUID | Required | Issued by InitMovementPlan() API  |
-| `timestamp` | Unix Timestamp | Required | Time of day (UTC) data was sampled|
+| `date` | date-time | Required | Date/time the data was sampled. Based on GPS clock. |
 | `route` | Route | Required | See detail below. |
 | `accuracy` | Integer | Required | The approximate level of accuracy, in meters, represented by start_point and end_point. |
 
@@ -157,7 +158,7 @@ Response:
 
 ### Route
 
-To represent a route, MDS provider APIs should create a GeoJSON Feature Collection where ever observed point in the route, plus a time stamp, should be included. The representation needed is below.
+To represent a route, MDS provider APIs should create a GeoJSON Feature Collection where ever observed point in the route, plus a time stamp in ISO 8601 format, should be included. The representation needed is below.
 
 The route must include at least 2 points, a start point and end point. Additionally, it must include all possible GPS samples collected by a provider. All points must be in WGS 84 (EPSG:4326) standard GPS projection
 
@@ -168,7 +169,7 @@ The route must include at least 2 points, a start point and end point. Additiona
             {
                 "type": "Feature",
                 "properties": {
-                    "timestamp": 1529968782.421409
+                    "timestamp": "2018-06-25T23:19:42+00:00"
                 },
                 "geometry": {
                     "type": "Point",
@@ -181,7 +182,7 @@ The route must include at least 2 points, a start point and end point. Additiona
             {
                 "type": "Feature",
                 "properties": {
-                    "timestamp": 1531007628.3774529
+                    "timestamp": "2018-07-07T23:53:48+00:00"
                 },
                 "geometry": {
                     "type": "Point",
@@ -213,11 +214,15 @@ Response:
 | Field | Types  | Required/Optional | Other |
 | ----- | ---- | ----------------- | ----- |
 | `service_area_id` | UUID | Required |  |
-| `service_start_date` | Unix Timestamp | Required | Date at which this service area became effective |
-| `service_end_date` | Unix Timestamp | Required | Date at which this service area was replaced. If currently effective, place NaN |
+| `service_start_date` | date-time | Required | Date at which this service area became effective |
+| `service_end_date` | date-time | Required | Date at which this service area was replaced. If currently effective, place null |
 | `service_area` | MultiPolygon | Required | |
 | `prior_service_area` | UUID | Optional | If exists, the UUID of the prior service area. |
 | `replacement_service_area` | UUID | Optional | If exists, the UUID of the service area that replaced this one |
+
+### Data types
+
+**date-time:**: `date-time` fields follow the ISO 8601 standard, as specified in the [JSON Schema Validation section 7.3.1](http://json-schema.org/latest/json-schema-validation.html#rfc.section.7.3.1)
 
 ### Event Types
 
