@@ -69,7 +69,10 @@ Response:
 
 ## update_vehicle_status
 
-This API is used by providers when a vehicle is either removed or returned to service.
+This API is used by providers to update a vehicle status every 10 minute, or when:
+- the vehicle moves significantly
+- the vehicle status changes
+- the vehicle battery status changes
 
 Endpoint: `/update_vehicle_status`\
 Method: `POST`\
@@ -80,10 +83,9 @@ Body:
 | Field | Type | Required/Optional | Other |
 | ----- | ---- | ----------------- | ----- |
 | `unique_id` | UUID | Required | ID used in [Register](#register_vehicle) |
-| `timestamp` | Unix Timestamp | Required | Date/time that event occurred. Based on GPS clock. |
-| `location` | Point | Required | Location at the time of status change in WGS 84 (EPSG:4326) standard GPS projection  |
-| `event_type` | Enum | Required | [Event Type](#event_type) for status change.  |
-| `reason_code` | Enum | Required | [Reason](#reason_code) for status change.  |
+| `timestamp` | Unix Timestamp | Required | Date/time of the location measurement. Based on GPS clock. |
+| `location` | Point | Required | Location of the vehicle in WGS 84 (EPSG:4326) standard GPS projection. |
+| `status` | Enum | Required | The current [Status](#status).  |
 | `battery_pct` | Float | Require if Applicable | Percent battery charge of device, expressed between 0 and 1 |
 
 Response:
@@ -219,22 +221,14 @@ Response:
 | `prior_service_area` | UUID | Optional | If exists, the UUID of the prior service area. |
 | `replacement_service_area` | UUID | Optional | If exists, the UUID of the service area that replaced this one |
 
-### Event Types
+### Status
 
-| event_type | event_type_description |  reason | reason_description  |
-| ---------- | ---------------------- | ------- | ------------------  |
-| `available` |    A device becomes available for customer use    | `service_start` |    Device introduced into service at the beginning of the day (if program does not operate 24/7) |
-| | | `user_drop_off` |    User ends reservation |
-| | | `rebalance_drop_off` | Device moved for rebalancing |
-| | | `maintenance_drop_off` |  Device introduced into service after being removed for maintenance |
-| `reserved` | A customer reserves a device (even if trip has not started yet) | `user_pick_up` | Customer reserves device |
-| `unavailable` |    A device is on the street but becomes unavailable for customer use | `default` |  Default state for a newly registered vehicle    |
-| | | `low_battery` | A device is no longer available due to insufficient battery |
-| | | ``maintenance`` | A device is no longer available due to equipment issues |
-| `removed` | A device is removed from the street and unavailable for customer use | `service_end`| Device removed from street because service has ended for the day (if program does not operate 24/7) |
-| | | `rebalance_pick_up` |    Device removed from street and will be placed at another location to rebalance service |
-| | | `maintenance_pick_up`     | Device removed from street so it can be worked on |
-| `inactive` | A device has been deregistered  |     |  |
+| Status        | Description |
+| ------------- | ----------- |
+| `available` | The vehicle is available for customer use |
+| `reserved` | The vehicle is used by a customer |
+| `unavailable` | The vehicle is on the street but unavailable for customer use |
+| `removed` | The vehicle has been removed from the street |
 
 ## Enum Definitions
 
